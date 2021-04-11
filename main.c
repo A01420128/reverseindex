@@ -117,31 +117,30 @@ int main() {
                     // printf("Entered found word: %s\n!!", word);
                     // ya esta word en pregistro
                     // leemos record hasta encrontrar -1 
-                    // TODO: the tiene -1 a pesar de que se repite
                     sregistro s;
                     fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
                     fread(&s, sizeof(sregistro), 1, sfptr);
-                    long pos = ftell(sfptr) / sizeof(sregistro);
-                    // printf("read: %d, %d, pos: %ld\n", s.line, s.next, pos);
+
                     while (s.next != -1) {
                         sptr = s.next;
                         fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
                         fread(&s, sizeof(sregistro), 1, sfptr);
                     }
-                    // Tenemos sregistro de word con -1
-                    sregistro nuevos;
-                    nuevos.line = nline;
-                    nuevos.next = -1;
-                    // Actualizar registro que tenia -1;
-                    s.next = ultimo_sreg + 1;
-                    pos = ftell(sfptr) / sizeof(sregistro);
-                    // printf("intro %d, next : %d, pos: %ld\n", s.line, s.next, pos);
-                    fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
-                    fwrite(&s, sizeof(sregistro), 1, sfptr);
-                    // Insertar nuevo registro en sregistro
-                    fseek(sfptr, 0, SEEK_END);
-                    ultimo_sreg++;
-                    fwrite(&nuevos, sizeof(sregistro), 1, sfptr);
+
+                    if (s.line != nline) {
+                        // Tenemos sregistro de word con -1
+                        sregistro nuevos;
+                        nuevos.line = nline;
+                        nuevos.next = -1;
+                        // Actualizar registro que tenia -1;
+                        s.next = ultimo_sreg + 1;
+                        fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
+                        fwrite(&s, sizeof(sregistro), 1, sfptr);
+                        // Insertar nuevo registro en sregistro
+                        fseek(sfptr, 0, SEEK_END);
+                        ultimo_sreg++;
+                        fwrite(&nuevos, sizeof(sregistro), 1, sfptr);
+                    }
                 } else {
                     // no esta en plista
 
@@ -155,7 +154,7 @@ int main() {
                     fwrite(&nsreg, sizeof(sregistro), 1, sfptr);
 
                     // Crear pregistro
-                    pregistro *npreg; // TODO: Malloc?
+                    pregistro *npreg;
                     npreg = (pregistro *) malloc(sizeof(pregistro));
                     strcpy(npreg->word, word);
                     npreg->ptr = ultimo_sreg + 1;

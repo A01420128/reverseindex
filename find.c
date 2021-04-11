@@ -19,15 +19,13 @@ int binary(char * word, long in, long fin, FILE *fptr) {
         return -1;
     }
     long mitad = (fin + in) / 2;
-    printf("mitad: %ld\n", mitad);
 
     pregistro p;
     fseek(fptr, sizeof(pregistro) * mitad, SEEK_SET);
     fread(&p, sizeof(pregistro), 1, fptr);
     int cmp = strcmp(word, p.word);
-    printf("Comparing: %s, %s\n", word, p.word);
     if (cmp == 0) {
-        printf("Encontro\n");
+        printf("Encontro %s en:\n", word);
         return p.ptr;
     }
 
@@ -54,10 +52,8 @@ int main() {
     fseek(fptr, 0, SEEK_END);
     long pregsize = ftell(fptr);
     long spreg = pregsize / sizeof(pregistro);
-    printf("Numero pregistros: %ld\n", spreg);
     // Binary search
     int ptr = binary(req, 0, spreg, fptr);
-    printf("Ptr: %d\n", ptr);
     if (ptr < 0) {
         printf("Palabra no encontrada.\n");
         return 0;
