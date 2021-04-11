@@ -87,13 +87,9 @@ int main() {
         fprintf(stderr, "ERROR");
     }
 
-    FILE *pfptr = fopen("pregistro", "wb+");
-    if (pfptr == NULL) {
-        fprintf(stderr, "ERROR");
-    }
 
     FILE *sfptr = fopen("sregistro", "wb+");
-    if (pfptr == NULL) {
+    if (sfptr == NULL) {
         fprintf(stderr, "ERROR");
     }
 
@@ -106,7 +102,7 @@ int main() {
     int nline = 0;
     while (cfgets(line, MAX_LINE, fptr) != NULL) {
         nline++;
-        printf("%s\n", line);
+        // printf("%s\n", line);
         // separar palabra
         char delim[] = " '\".-_`?(),!:;[]";
         char *tofree, *word, *string;
@@ -118,11 +114,15 @@ int main() {
                 // buscar palabara en pregistro
                 int sptr;
                 if ((sptr = listfind(word, &raiz)) >= 0) {
+                    // printf("Entered found word: %s\n!!", word);
                     // ya esta word en pregistro
                     // leemos record hasta encrontrar -1 
+                    // TODO: the tiene -1 a pesar de que se repite
                     sregistro s;
                     fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
                     fread(&s, sizeof(sregistro), 1, sfptr);
+                    long pos = ftell(sfptr) / sizeof(sregistro);
+                    // printf("read: %d, %d, pos: %ld\n", s.line, s.next, pos);
                     while (s.next != -1) {
                         sptr = s.next;
                         fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
@@ -134,6 +134,9 @@ int main() {
                     nuevos.next = -1;
                     // Actualizar registro que tenia -1;
                     s.next = ultimo_sreg + 1;
+                    pos = ftell(sfptr) / sizeof(sregistro);
+                    // printf("intro %d, next : %d, pos: %ld\n", s.line, s.next, pos);
+                    fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
                     fwrite(&s, sizeof(sregistro), 1, sfptr);
                     // Insertar nuevo registro en sregistro
                     fseek(sfptr, 0, SEEK_END);
@@ -147,6 +150,8 @@ int main() {
                     nsreg.line = nline;
                     nsreg.next = -1;
                     fseek(sfptr, 0, SEEK_END);
+                    long pos = ftell(sfptr) / sizeof(sregistro);
+                    // printf("intro %s %d, next : %d, pos: %ld\n", word, nsreg.line, nsreg.next, pos);
                     fwrite(&nsreg, sizeof(sregistro), 1, sfptr);
 
                     // Crear pregistro
@@ -166,6 +171,10 @@ int main() {
             }
         }
     }
+    sregistro s;
+    fseek(sfptr, 0, SEEK_SET);
+    fread(&s, sizeof(sregistro), 1, sfptr);
+    printf("%d, %d\n", s.line, s.next);
     fclose(fptr); // dejamos de leer alice
     fclose(sfptr); // dejamos de escribir leer sregistro
 
@@ -173,40 +182,28 @@ int main() {
     if (raiz == NULL)
         return EXIT_FAILURE;
 
+    FILE *pfptr = fopen("pregistro", "wb+");
+    if (pfptr == NULL) {
+        fprintf(stderr, "ERROR");
+    }
+
     pentry * curr = raiz;
     int pi = 0;
     while (curr != NULL) {
         // fwrite en pft
         fseek(pfptr, sizeof(pregistro) * pi, SEEK_SET);
         fwrite(&curr->p, sizeof(pregistro), 1, pfptr);
-        printf("%s, %d\n", curr->p->word, curr->p->ptr);
+        fseek(pfptr, sizeof(pregistro) * pi, SEEK_SET);
+        // printf("%d: %s, %d\n", pi, curr->p->word, curr->p->ptr);
+        pregistro p;
+        fread(&p, sizeof(pregistro), 1, pfptr);
+        printf("%s, %d\n", p.word, p.ptr);
         curr = curr->sig;
         pi++;
     }
-    printf("Hay %d pregistros.\n", pi);
+    pregistro p;
+    fseek(pfptr, sizeof(pregistro) * 1, SEEK_SET);
+    fread(&p, sizeof(pregistro), 1, pfptr);
     fclose(pfptr);
     return EXIT_SUCCESS;
-
-
-    /*
-    for (int i = 0; i < sizepregistro + 1; i++) {
-        pregistro p;
-        char w[50] = "entry";
-        strcpy(p.word, w);
-        p.ptr = i;
-        fwrite(&p, sizeof(pregistro), 1, pfptr);
-    }
-    */
-
-    // Binary search
-    // leer el tamano del archivo
-    // 0 tamano
-    /*
-    for (int i = 0; i < sizepregistro + 1; i++) {
-        fseek(pfptr, sizeof(pregistro) * i, SEEK_SET);
-        pregistro p2;
-        fread(&p2, sizeof(pregistro), 1, pfptr);
-        printf("Entry: %s, ptr: %d\n", p2.word, p2.ptr);
-    }
-    */
 }
