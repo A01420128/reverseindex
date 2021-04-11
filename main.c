@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <string.h>
-#include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -178,11 +177,13 @@ int main() {
     int pi = 0;
     while (curr != NULL) {
         // fwrite en pft
+        fseek(pfptr, sizeof(pregistro) * pi, SEEK_SET);
         fwrite(&curr->p, sizeof(pregistro), 1, pfptr);
-        printf("%s\n", curr->p->word);
+        printf("%s, %d\n", curr->p->word, curr->p->ptr);
         curr = curr->sig;
         pi++;
     }
+    printf("Hay %d pregistros.\n", pi);
     fclose(pfptr);
     return EXIT_SUCCESS;
 
