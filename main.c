@@ -1,9 +1,25 @@
+/*
+PARTE 2
+Realizarán un programa en lenguaje C que implemente un archivo invertido. 
+Su implementación constará en realidad de dos archivos binarios de acceso 
+aleatorio y actualizables
+
+Usamos una lista ligada para guardar las palabras del primer archivo y hacer
+el insertion sort. Al final imprimimos la lista en el primer archivo
+
+Nombre primer archivo: pregistro
+Nombre segundo archivo:spregistro
+
+Por:
+Jose Javier Tlacuilo Fuentes A01420128
+Andrea Alessandra Villarruel Sernas A01656255
+*/
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 
-#define MAX_LINE 81
+#define MAX_LINE 81 // TODO: Max line for a file.
 
 typedef struct pregistro {
   char word[50];

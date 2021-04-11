@@ -1,3 +1,13 @@
+/*
+PARTE 3
+Un programa que dando una palabra indicará las posiciones dónde se encuentra 
+dicha palabra dentro del texto.
+
+Por:
+Jose Javier Tlacuilo Fuentes A01420128
+Andrea Alessandra Villarruel Sernas A01656255
+*/
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -38,7 +48,7 @@ int binary(char * word, long in, long fin, FILE *fptr) {
 
 int main() {
     char req[50];
-    printf("Palabra? \n");
+    printf("Palabra en minusculas? \n");
     scanf("%s", req);
     printf("Buscando %s...\n", req);
 
@@ -64,7 +74,7 @@ int main() {
     if (sfptr == NULL) {
         fprintf(stderr, "ERROR");
     }
-    // leemos record hasta encrontrar -1 
+    // Leemos record hasta encrontrar -1 
     sregistro s;
     fseek(sfptr, sizeof(sregistro) * ptr, SEEK_SET);
     fread(&s, sizeof(sregistro), 1, sfptr);
