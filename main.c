@@ -6,21 +6,20 @@
 
 #define MAX_LINE 81
 
-typedef struct primer {
+typedef struct pregistro {
   char word[50];
   int ptr;
-} primer;
+} pregistro;
 
 typedef struct pentry {
-    char name[50];
-    primer p;
+    struct pregistro *p;
     struct pentry *sig;
 } pentry;
 
-typedef struct segundo {
+typedef struct sregistro {
   int line;
   int next;
-} segundo;
+} sregistro;
 
 void insertar(pentry *pe,pentry** raiz ) {
   // la lista esta vacía?
@@ -30,18 +29,19 @@ void insertar(pentry *pe,pentry** raiz ) {
   }
   // *raiz != NULL la lista no está vacía
   // va al comienzo de la lista?
-  if(strcmp(pe->nombre, (*raiz)->nombre) < 0) {
+  if(strcmp(pe->p->word, (*raiz)->p->word) < 0) {
     pe->sig = *raiz;
     *raiz = pe;
     return;
   }
-  // no es el primero de la lista
+  // no es el pregistroo de la lista
   pentry *pe1 = *raiz;
   pentry *pe2 = pe1->sig;
-  while(pe2 != NULL && strcmp(pe->nombre, pe2->nombre) > 0) {
+  while(pe2 != NULL && strcmp(pe->p->word, pe2->p->word) > 0) {
     pe1 = pe2;
     pe2 = pe2->sig;
   }
+
   if(pe2 != NULL) {
     pe->sig = pe2;
     pe1->sig = pe;
@@ -50,6 +50,17 @@ void insertar(pentry *pe,pentry** raiz ) {
   // va al final
   pe1->sig = pe;
 
+}
+
+int listfind(char word[50], pentry** root) {
+    pentry *this = *root;
+    while (this != NULL) {
+        if (strcmp(word, this->p->word) == 0) {
+            return this->p->ptr;
+        }
+        this = this->sig;
+    }
+    return -1;
 }
 
 
@@ -77,72 +88,124 @@ int main() {
         fprintf(stderr, "ERROR");
     }
 
-    FILE *pfptr = fopen("primer", "r+");
+    FILE *pfptr = fopen("pregistro", "wb+");
     if (pfptr == NULL) {
         fprintf(stderr, "ERROR");
     }
-    // arr arrprimer
-    int sizeprimer = 20;
-    primer * arrprimer = malloc(sizeof(primer) * 20);
-    //  linked list sortedprimer
-    // name: ""
-    // primer: name
-    //          location
-    // next:
+
+    FILE *sfptr = fopen("sregistro", "wb+");
+    if (pfptr == NULL) {
+        fprintf(stderr, "ERROR");
+    }
+
+    // lista de pregistro
+    pentry * raiz = NULL;
+    int ultimo_sreg = -1;
 
     // Leer linea
     char line[MAX_LINE];
+    int nline = 0;
     while (cfgets(line, MAX_LINE, fptr) != NULL) {
+        nline++;
         printf("%s\n", line);
         // separar palabra
-        char delim[] = " '\".-`?(),!:;";
+        char delim[] = " '\".-_`?(),!:;[]";
         char *tofree, *word, *string;
         string = line;
         while ((word = strsep(&string, delim)) != NULL) {
             if (word[0] != '\0' && word[0] != '\n') {
                 // convertir a lower case
                 strlower(word, MAX_LINE);
-                printf("%s\n", word);
-                // buscar palabara en primer
-                primer p;
-                strcpy(p.word, word);
-                p.ptr = 0;
-                int i = sizeprimer;
-                while (i > 0; // ) {
-                // arr.word > word
-                    i--;
+                // buscar palabara en pregistro
+                int sptr;
+                if ((sptr = listfind(word, &raiz)) >= 0) {
+                    // ya esta word en pregistro
+                    // leemos record hasta encrontrar -1 
+                    sregistro s;
+                    fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
+                    fread(&s, sizeof(sregistro), 1, sfptr);
+                    while (s.next != -1) {
+                        sptr = s.next;
+                        fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
+                        fread(&s, sizeof(sregistro), 1, sfptr);
+                    }
+                    // Tenemos sregistro de word con -1
+                    sregistro nuevos;
+                    nuevos.line = nline;
+                    nuevos.next = -1;
+                    // Actualizar registro que tenia -1;
+                    s.next = ultimo_sreg + 1;
+                    fwrite(&s, sizeof(sregistro), 1, sfptr);
+                    // Insertar nuevo registro en sregistro
+                    fseek(sfptr, 0, SEEK_END);
+                    ultimo_sreg++;
+                    fwrite(&nuevos, sizeof(sregistro), 1, sfptr);
+                } else {
+                    // no esta en plista
+
+                    // insertar nuevo sregistro al final
+                    sregistro nsreg;
+                    nsreg.line = nline;
+                    nsreg.next = -1;
+                    fseek(sfptr, 0, SEEK_END);
+                    fwrite(&nsreg, sizeof(sregistro), 1, sfptr);
+
+                    // Crear pregistro
+                    pregistro *npreg; // TODO: Malloc?
+                    npreg = (pregistro *) malloc(sizeof(pregistro));
+                    strcpy(npreg->word, word);
+                    npreg->ptr = ultimo_sreg + 1;
+                    ultimo_sreg++;
+
+                    // Creamos nuevo elemnto de plista
+                    pentry *nentry;
+                    nentry = (pentry *) malloc(sizeof(pentry));
+                    nentry->p = npreg;
+                    nentry->sig = NULL;
+                    insertar(nentry, &raiz);
                 }
-            }
-
-
-                // si lo econtramos nos vamos al segundo
-                // si no lo tenemos que escribir
-                // lo insertionsort al meterlo en arrprimer
             }
         }
     }
-    fclose(fptr);
-    // escribir arrprimer ordenado en pfptr
-    for (int i = 0; i < sizeprimer + 1; i++) {
-        primer p;
+    fclose(fptr); // dejamos de leer alice
+    fclose(sfptr); // dejamos de escribir leer sregistro
+
+    // escribir pregistrolista ordenado en pfptr
+    if (raiz == NULL)
+        return EXIT_FAILURE;
+
+    pentry * curr = raiz;
+    int pi = 0;
+    while (curr != NULL) {
+        // fwrite en pft
+        fwrite(&curr->p, sizeof(pregistro), 1, pfptr);
+        printf("%s\n", curr->p->word);
+        curr = curr->sig;
+        pi++;
+    }
+    fclose(pfptr);
+    return EXIT_SUCCESS;
+
+
+    /*
+    for (int i = 0; i < sizepregistro + 1; i++) {
+        pregistro p;
         char w[50] = "entry";
         strcpy(p.word, w);
         p.ptr = i;
-        fwrite(&p, sizeof(primer), 1, pfptr);
+        fwrite(&p, sizeof(pregistro), 1, pfptr);
     }
+    */
 
     // Binary search
     // leer el tamano del archivo
     // 0 tamano
     /*
-    for (int i = 0; i < sizeprimer + 1; i++) {
-        fseek(pfptr, sizeof(primer) * i, SEEK_SET);
-        primer p2;
-        fread(&p2, sizeof(primer), 1, pfptr);
+    for (int i = 0; i < sizepregistro + 1; i++) {
+        fseek(pfptr, sizeof(pregistro) * i, SEEK_SET);
+        pregistro p2;
+        fread(&p2, sizeof(pregistro), 1, pfptr);
         printf("Entry: %s, ptr: %d\n", p2.word, p2.ptr);
     }
     */
-
-    fclose(pfptr);
-    return EXIT_SUCCESS;
 }
