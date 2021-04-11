@@ -22,7 +22,7 @@ int binary(char * word, long in, long fin, FILE *fptr) {
     printf("mitad: %ld\n", mitad);
 
     pregistro p;
-    fseek(fptr, sizeof(pregistro) * 55, SEEK_SET);
+    fseek(fptr, sizeof(pregistro) * mitad, SEEK_SET);
     fread(&p, sizeof(pregistro), 1, fptr);
     int cmp = strcmp(word, p.word);
     printf("Comparing: %s, %s\n", word, p.word);
@@ -49,10 +49,6 @@ int main() {
     if (fptr == NULL) {
         fprintf(stderr, "ERROR");
     }
-    fseek(fptr, 0, SEEK_SET);
-    pregistro p;
-    fread(&p, sizeof(pregistro), 1, fptr);
-    printf("%s: %d\n", p.word, p.ptr);
 
     // Ver tamano de archivo
     fseek(fptr, 0, SEEK_END);
@@ -76,13 +72,14 @@ int main() {
     sregistro s;
     fseek(sfptr, sizeof(sregistro) * ptr, SEEK_SET);
     fread(&s, sizeof(sregistro), 1, sfptr);
-    printf("in line: %d, ptr: %d\n", s.line, s.next);
+    printf("%d\t", s.line);
     while (s.next != -1) {
         ptr = s.next;
         fseek(sfptr, sizeof(sregistro) * ptr, SEEK_SET);
         fread(&s, sizeof(sregistro), 1, sfptr);
-        printf("in line: %d\n", s.line);
+        printf("%d\t", s.line);
     }
+    putchar('\n');
 
     fclose(sfptr);
     fclose(fptr);

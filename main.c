@@ -191,13 +191,15 @@ int main() {
     int pi = 0;
     while (curr != NULL) {
         // fwrite en pft
+        pregistro p; // TODO: Lo duplicamos para sacarlo.
+        strcpy(p.word, curr->p->word);
+        p.ptr = curr->p->ptr;
+        fwrite(&p, sizeof(pregistro), 1, pfptr);// TODO: curr (elemnto de lista) apunta a p, imprimir p, sacarlo de curr
         fseek(pfptr, sizeof(pregistro) * pi, SEEK_SET);
-        fwrite(&curr->p, sizeof(pregistro), 1, pfptr);
-        fseek(pfptr, sizeof(pregistro) * pi, SEEK_SET);
-        // printf("%d: %s, %d\n", pi, curr->p->word, curr->p->ptr);
-        pregistro p;
-        fread(&p, sizeof(pregistro), 1, pfptr);
-        printf("%s, %d\n", p.word, p.ptr);
+        printf("%d: %s, %d\n", pi, p.word, p.ptr);
+        pregistro p2;
+        fread(&p2, sizeof(pregistro), 1, pfptr);
+        printf("%s, %d\n", p2.word, p2.ptr);
         curr = curr->sig;
         pi++;
     }
