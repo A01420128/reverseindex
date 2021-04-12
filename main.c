@@ -86,6 +86,7 @@ char * cfgets(char * line, int s, FILE * ptr) {
     return res;
 }
 
+// Convertir un string a lowercase.
 void strlower(char * str, int size) {
     int i = 0;
     while (str[i] != '\0' && i < size) {
@@ -103,46 +104,46 @@ int main() {
         fprintf(stderr, "ERROR");
     }
 
-
+    // Abrir o crear segundo archivo con registros por linea.
     FILE *sfptr = fopen("sregistro", "wb+");
     if (sfptr == NULL) {
         fprintf(stderr, "ERROR");
     }
 
-    // lista de pregistro
+    // lista de pregistros, registros para el primer archivo.
     pentry * raiz = NULL;
     int ultimo_sreg = -1;
 
     // Leer linea
     char line[MAX_LINE];
     int nline = 0;
-    while (cfgets(line, MAX_LINE, fptr) != NULL) {
+    while (cfgets(line, MAX_LINE, fptr) != NULL) { // Para cada linea
         nline++;
-        // printf("%s\n", line);
         // separar palabra
         char delim[] = " '\".-_`?(),!:;[]";
-        char *tofree, *word, *string;
+        char *word, *string;
         string = line;
-        while ((word = strsep(&string, delim)) != NULL) {
+        while ((word = strsep(&string, delim)) != NULL) { // Separar palabara por palabra.
             if (word[0] != '\0' && word[0] != '\n') {
                 // convertir a lower case
                 strlower(word, MAX_LINE);
-                // buscar palabara en pregistro
+                // buscar palabara en lista ligada de pregistros.
                 int sptr;
                 if ((sptr = listfind(word, &raiz)) >= 0) {
-                    // printf("Entered found word: %s\n!!", word);
-                    // ya esta word en pregistro
-                    // leemos record hasta encrontrar -1 
+                    // ya esta word en la lista.
+                    // leemos registros en el segundo archivo hasta encrontrar -1 
                     sregistro s;
                     fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
                     fread(&s, sizeof(sregistro), 1, sfptr);
 
+                    // Cambiamos el apuntador hasta obterner el ultimo registro para esa palabra.
                     while (s.next != -1) {
                         sptr = s.next;
                         fseek(sfptr, sizeof(sregistro) * sptr, SEEK_SET);
                         fread(&s, sizeof(sregistro), 1, sfptr);
                     }
 
+                    // Evaluar si ya se repitio la palabra en esa linea.
                     if (s.line != nline) {
                         // Tenemos sregistro de word con -1
                         sregistro nuevos;
@@ -158,7 +159,7 @@ int main() {
                         fwrite(&nuevos, sizeof(sregistro), 1, sfptr);
                     }
                 } else {
-                    // no esta en plista
+                    // no esta en lista ligada de pregistos
 
                     // insertar nuevo sregistro al final
                     sregistro nsreg;
@@ -166,17 +167,16 @@ int main() {
                     nsreg.next = -1;
                     fseek(sfptr, 0, SEEK_END);
                     long pos = ftell(sfptr) / sizeof(sregistro);
-                    // printf("intro %s %d, next : %d, pos: %ld\n", word, nsreg.line, nsreg.next, pos);
                     fwrite(&nsreg, sizeof(sregistro), 1, sfptr);
 
-                    // Crear pregistro
+                    // Crear un nuevo pregistro
                     pregistro *npreg;
                     npreg = (pregistro *) malloc(sizeof(pregistro));
                     strcpy(npreg->word, word);
                     npreg->ptr = ultimo_sreg + 1;
                     ultimo_sreg++;
 
-                    // Creamos nuevo elemnto de plista
+                    // Insertamos alfabeticamente el nuevo pregistro.
                     pentry *nentry;
                     nentry = (pentry *) malloc(sizeof(pentry));
                     nentry->p = npreg;
@@ -186,22 +186,23 @@ int main() {
             }
         }
     }
-    sregistro s;
-    fseek(sfptr, 0, SEEK_SET);
-    fread(&s, sizeof(sregistro), 1, sfptr);
-    printf("%d, %d\n", s.line, s.next);
     fclose(fptr); // dejamos de leer alice
     fclose(sfptr); // dejamos de escribir leer sregistro
 
-    // escribir pregistrolista ordenado en pfptr
-    if (raiz == NULL)
+    // Si nuestra lista ligada no leyo nada salir.
+    if (raiz == NULL) {
+        printf("Error al leer archivo de entrada.\n");
         return EXIT_FAILURE;
+    }
 
+    // Abrir o crear el primer archivo para escritura.
     FILE *pfptr = fopen("pregistro", "wb+");
     if (pfptr == NULL) {
         fprintf(stderr, "ERROR");
     }
 
+    // Leer todos los registros guardados en la  lista ligada.
+    // Y escribirlos en el archivo.
     pentry * curr = raiz;
     int pi = 0;
     while (curr != NULL) {
@@ -218,9 +219,6 @@ int main() {
         curr = curr->sig;
         pi++;
     }
-    pregistro p;
-    fseek(pfptr, sizeof(pregistro) * 1, SEEK_SET);
-    fread(&p, sizeof(pregistro), 1, pfptr);
     fclose(pfptr);
     return EXIT_SUCCESS;
 }
