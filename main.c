@@ -96,10 +96,13 @@ void strlower(char * str, int size) {
 }
 
 int main() {
-    // Leer alice
-    FILE *fptr;
-    char file[] = "alice.txt";
-    fptr = fopen(file, "r");
+    // Preguntar archivo.
+    char filename[51];
+    printf("Cual es el nombre del archivo?\n");
+    scanf("%s", filename);
+
+    // Leer archivo.
+    FILE *fptr = fopen(filename, "r");
     if (fptr == NULL) {
         fprintf(stderr, "ERROR");
     }
