@@ -19,7 +19,7 @@ Andrea Alessandra Villarruel Sernas A01656255
 #include <ctype.h>
 #include <stdlib.h>
 
-#define MAX_LINE 81 // TODO: Max line for a file.
+#define MAX_LINE 501 // TODO: Max line for a file.
 
 typedef struct pregistro {
   char word[50];
@@ -214,14 +214,11 @@ int main() {
         strcpy(p.word, curr->p->word);
         p.ptr = curr->p->ptr;
         fwrite(&p, sizeof(pregistro), 1, pfptr);// TODO: curr (elemnto de lista) apunta a p, imprimir p, sacarlo de curr
-        fseek(pfptr, sizeof(pregistro) * pi, SEEK_SET);
-        printf("%d: %s, %d\n", pi, p.word, p.ptr);
-        pregistro p2;
-        fread(&p2, sizeof(pregistro), 1, pfptr);
-        printf("%s, %d\n", p2.word, p2.ptr);
         curr = curr->sig;
         pi++;
     }
     fclose(pfptr);
+
+    printf("Se han creado los archivos pregistro y sregistro.\n");
     return EXIT_SUCCESS;
 }
