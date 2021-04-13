@@ -7,4 +7,4 @@ find: find.c
 	gcc -o find find.c
 
 clean:
-	rm pregistro sregistro
+	rm pregistro sregistro main find
