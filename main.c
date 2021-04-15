@@ -98,7 +98,7 @@ void strlower(char * str, int size) {
 int main() {
     // Preguntar archivo.
     char filename[51];
-    printf("Cual es el nombre del archivo?\n");
+    printf("Cual es el nombre del archivo a leer (ej. alice.txt)?\n");
     scanf("%s", filename);
 
     // Leer archivo.
